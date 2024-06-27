@@ -67,42 +67,30 @@ export default function AdditionalDetailsPage() {
   return (
     <>
       {!isSignedIn && !user ? (
-        <form onSubmit={handleSubmit} className="bg-black">
+        <form onSubmit={handleSubmit}>
           <input
             type="email"
             name="email"
-            className="bg-black"
             value={formData.email}
-            onChange={handleChange}
+            readOnly
             placeholder="Email"
           />
           <input
             type="text"
-            name="firstName"
-            className="bg-black"
+            name="firstName "
             value={formData.firstName}
             onChange={handleChange}
-            placeholder="First Name"
-          />
-          <input
-            type="text"
-            name="lastName"
-            className="bg-black"
-            value={formData.lastName}
-            onChange={handleChange}
-            placeholder="Last Name"
+            placeholder="Name"
           />
           <input
             type="text"
             name="universityId"
-            className="bg-black"
             value={formData.universityId}
             onChange={handleChange}
             placeholder="University ID"
           />
           <input
             type="text"
-            className="bg-black"
             name="role"
             value={formData.role}
             onChange={handleChange}
