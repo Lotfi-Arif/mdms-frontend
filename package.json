@@ -9,21 +9,26 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@clerk/nextjs": "^5.1.6",
-    "@lotfiarif-development/mdms-prisma-schema": "^0.0.4",
+    "@emotion/react": "^11.11.4",
+    "@emotion/styled": "^11.11.5",
+    "@lotfiarif-development/mdms-prisma-schema": "^0.0.6",
+    "@mui/material": "^5.15.21",
+    "@reduxjs/toolkit": "^2.2.6",
+    "@types/react-redux": "^7.1.33",
     "axios": "^1.7.2",
     "next": "14.2.4",
-    "react": "^18",
-    "react-dom": "^18"
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-redux": "^9.1.2"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "eslint": "^8",
+    "eslint": "^8.56",
     "eslint-config-next": "14.2.4",
-    "postcss": "^8",
+    "postcss": "^8.4.39",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5"
+    "typescript": "^5.5.2"
   }
 }
