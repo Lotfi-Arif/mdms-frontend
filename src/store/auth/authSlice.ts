@@ -1,4 +1,3 @@
-// src/store/authSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import axios from "axios";
 import {
@@ -8,22 +7,29 @@ import {
   User,
   Token,
 } from "../../types/auth";
+import {
+  getLocalStorageItem,
+  setLocalStorageItem,
+  removeLocalStorageItem,
+} from "../../utils/localStorage";
 
 const API_URL = "http://localhost:3001/auth";
 
-export const login = createAsyncThunk<
-  Token,
-  LoginCredentials,
-  { rejectValue: string }
->("auth/login", async (credentials, { rejectWithValue }) => {
-  try {
-    const response = await axios.post<Token>(`${API_URL}/login`, credentials);
-    localStorage.setItem("token", response.data.accessToken);
-    return response.data;
-  } catch (error) {
-    return rejectWithValue(error.response?.data?.message || "Login failed");
+export const login = createAsyncThunk(
+  "auth/login",
+  async (
+    credentials: { email: string; password: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await axios.post(`${API_URL}/login`, credentials);
+      setLocalStorageItem("token", response.data.accessToken);
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(error.response.data || "Login failed");
+    }
   }
-});
+);
 
 export const register = createAsyncThunk<
   Token,
@@ -35,9 +41,9 @@ export const register = createAsyncThunk<
       `${API_URL}/register`,
       credentials
     );
-    localStorage.setItem("token", response.data.accessToken);
+    setLocalStorageItem("token", response.data.accessToken);
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
     return rejectWithValue(
       error.response?.data?.message || "Registration failed"
     );
@@ -51,11 +57,11 @@ export const fetchUser = createAsyncThunk<User, void, { rejectValue: string }>(
       const token = localStorage.getItem("token");
       if (!token) throw new Error("No token found");
 
-      const response = await axios.get<User>(`${API_URL}/user`, {
+      const response = await axios.get<User>(`${API_URL}/user/${email}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       return rejectWithValue(
         error.response?.data?.message || "Failed to fetch user"
       );
@@ -65,7 +71,7 @@ export const fetchUser = createAsyncThunk<User, void, { rejectValue: string }>(
 
 const initialState: AuthState = {
   user: null,
-  token: localStorage.getItem("token"),
+  token: getLocalStorageItem("token"),
   isAuthenticated: false,
   loading: false,
   error: null,
@@ -79,7 +85,7 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.isAuthenticated = false;
-      localStorage.removeItem("token");
+      removeLocalStorageItem("token");
     },
     clearError: (state) => {
       state.error = null;
@@ -98,7 +104,7 @@ const authSlice = createSlice({
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || "Login failed";
+        state.error = action.error.message || "Login failed";
       })
       .addCase(register.pending, (state) => {
         state.loading = true;
@@ -127,7 +133,7 @@ const authSlice = createSlice({
         state.error = action.payload || "Failed to fetch user";
         state.isAuthenticated = false;
         state.token = null;
-        localStorage.removeItem("token");
+        removeLocalStorageItem("token");
       });
   },
 });
