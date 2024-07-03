@@ -9,12 +9,9 @@ import {
   ThemeProvider,
   createTheme,
   CssBaseline,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
 } from "@mui/material";
 import { styled } from "@mui/system";
+import { LoginCredentials, RegisterCredentials } from "../../types/auth";
 
 const theme = createTheme({
   palette: {
@@ -47,7 +44,7 @@ const StyledButton = styled(Button)(({ theme }) => ({
 
 interface AuthFormProps {
   isLogin: boolean;
-  onSubmit: (credentials: any) => void;
+  onSubmit: (credentials: LoginCredentials | RegisterCredentials) => void;
   switchAuthMode: () => void;
 }
 
@@ -58,16 +55,22 @@ const AuthForm: React.FC<AuthFormProps> = ({
 }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
-  const [role, setRole] = useState<"student" | "lecturer">("student");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [universityId, setUniversityId] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (isLogin) {
-      onSubmit({ email, password });
+      onSubmit({ email, password } as LoginCredentials);
     } else {
-      onSubmit({ email, password, name, role, universityId });
+      onSubmit({
+        email,
+        password,
+        firstName,
+        lastName,
+        universityId,
+      } as RegisterCredentials);
     }
   };
 
@@ -113,35 +116,32 @@ const AuthForm: React.FC<AuthFormProps> = ({
                   margin="normal"
                   required
                   fullWidth
-                  id="name"
-                  label="Full Name"
-                  name="name"
-                  autoComplete="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  id="firstName"
+                  label="First Name"
+                  name="firstName"
+                  autoComplete="given-name"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
                 />
-                <FormControl fullWidth variant="outlined" margin="normal">
-                  <InputLabel id="role-label">Role</InputLabel>
-                  <Select
-                    labelId="role-label"
-                    id="role"
-                    value={role}
-                    onChange={(e) =>
-                      setRole(e.target.value as "student" | "lecturer")
-                    }
-                    label="Role"
-                  >
-                    <MenuItem value="student">Student</MenuItem>
-                    <MenuItem value="lecturer">Lecturer</MenuItem>
-                  </Select>
-                </FormControl>
+                <TextField
+                  variant="outlined"
+                  margin="normal"
+                  required
+                  fullWidth
+                  id="lastName"
+                  label="Last Name"
+                  name="lastName"
+                  autoComplete="family-name"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                />
                 <TextField
                   variant="outlined"
                   margin="normal"
                   required
                   fullWidth
                   id="universityId"
-                  label={role === "student" ? "Matric Number" : "Staff Number"}
+                  label="University ID"
                   name="universityId"
                   value={universityId}
                   onChange={(e) => setUniversityId(e.target.value)}

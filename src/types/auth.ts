@@ -1,11 +1,10 @@
-// types/auth.ts
-export interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  role: "student" | "lecturer";
-}
+import {
+  User,
+  Student,
+  Lecturer,
+  Supervisor,
+  Examiner,
+} from "@lotfiarif-development/mdms-prisma-schema";
 
 export interface LoginCredentials {
   email: string;
@@ -13,15 +12,23 @@ export interface LoginCredentials {
 }
 
 export interface RegisterCredentials {
-  email: string;
+  email: User["email"];
   password: string;
-  name: string;
-  role: "student" | "lecturer";
-  universityId: string;
+  firstName: User["firstName"];
+  lastName: User["lastName"];
+  universityId: string; // This will be either matricNumber or staffNumber
 }
 
 export interface AuthState {
-  user: User | null;
+  user:
+    | (User & {
+        student?: Student;
+        lecturer?: Lecturer & {
+          supervisor?: Supervisor;
+          examiner?: Examiner;
+        };
+      })
+    | null;
   token: string | null;
   isAuthenticated: boolean;
   error: string | null;

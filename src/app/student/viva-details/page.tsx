@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 import {
   Card,
   CardContent,
@@ -9,7 +9,7 @@ import {
   List,
   ListItem,
   ListItemText,
-} from '@mui/material';
+} from "@mui/material";
 
 interface VivaDetails {
   projectTitle: string;
@@ -26,20 +26,23 @@ const vivaDetails: VivaDetails = {
   vivaDate: "July 15, 2024",
   vivaTime: "10:00 AM",
   studentName: "Jane Doe",
-  examiners: ["Dr. John Smith", "Prof. Emily Brown"]
+  examiners: ["Dr. John Smith", "Prof. Emily Brown"],
 };
 
 export default function VivaDetails() {
   return (
-  
-    <Box sx={{ minHeight: '100vh', 
-      display: 'flex', 
-      alignItems: 'flex-start', 
-      justifyContent: 'center', 
-      bgcolor: '#f5f5f5',
-      pt: 4,
-      boxShadow:1 }}>
-      <Card sx={{ maxWidth: 600, width: '100%', m: 2 }}>
+    <Box
+      sx={{
+        minHeight: "100vh",
+        display: "flex",
+        alignItems: "flex-start",
+        justifyContent: "center",
+        bgcolor: "#f5f5f5",
+        pt: 4,
+        boxShadow: 1,
+      }}
+    >
+      <Card sx={{ maxWidth: 600, width: "100%", m: 2 }}>
         <CardContent>
           <Typography variant="h4" component="h1" gutterBottom align="center">
             Viva Details

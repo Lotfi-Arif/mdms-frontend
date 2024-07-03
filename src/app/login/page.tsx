@@ -1,28 +1,38 @@
 "use client";
-
 import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { login, clearError } from "../../store/auth/authSlice";
 import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
 import { LoginCredentials } from "../../types/auth";
-import { Alert, CircularProgress } from "@mui/material";
+import { Alert, CircularProgress, Box, Typography } from "@mui/material";
 import AuthForm from "../components/AuthForm";
 
 export default function LoginPage() {
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const { loading, error, isAuthenticated } = useAppSelector(
+  const { loading, error, isAuthenticated, user } = useAppSelector(
     (state) => state.auth
   );
 
   useEffect(() => {
-    if (isAuthenticated) {
-      router.push("/dashboard");
+    if (isAuthenticated && user) {
+      if (user.student) {
+        router.push("/student/progress");
+      } else if (user.lecturer) {
+        if (user.lecturer.supervisor) {
+          router.push("/supervisor/student-progress");
+        } else if (user.lecturer.examiner) {
+          router.push("/examiner/viva-evaluations");
+        } else {
+          router.push("/lecturer/dashboard");
+        }
+      } else {
+        router.push("/dashboard");
+      }
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, user, router]);
 
   useEffect(() => {
-    // Clear any existing errors when the component mounts
     dispatch(clearError());
   }, [dispatch]);
 
@@ -35,10 +45,22 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md">
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        minHeight: "100vh",
+        bgcolor: "background.default",
+      }}
+    >
+      <Box sx={{ width: "100%", maxWidth: 400, p: 3 }}>
+        <Typography variant="h4" component="h1" gutterBottom align="center">
+          Login
+        </Typography>
         {error && (
-          <Alert severity="error" className="mb-4">
+          <Alert severity="error" sx={{ mb: 2 }}>
             {error}
           </Alert>
         )}
@@ -48,11 +70,11 @@ export default function LoginPage() {
           switchAuthMode={() => router.push("/register")}
         />
         {loading && (
-          <div className="flex justify-center mt-4">
+          <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
             <CircularProgress />
-          </div>
+          </Box>
         )}
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }

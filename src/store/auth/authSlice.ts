@@ -1,11 +1,16 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import axios from "axios";
-import { AuthState, RegisterCredentials, User, Token } from "../../types/auth";
+import { AuthState, RegisterCredentials, Token } from "../../types/auth";
 import {
   getLocalStorageItem,
   setLocalStorageItem,
   removeLocalStorageItem,
 } from "../../utils/localStorage";
+import {
+  Lecturer,
+  Student,
+  User,
+} from "@lotfiarif-development/mdms-prisma-schema";
 
 const API_URL = "http://localhost:3001/auth";
 
@@ -13,11 +18,12 @@ export const login = createAsyncThunk(
   "auth/login",
   async (
     credentials: { email: string; password: string },
-    { rejectWithValue }
+    { dispatch, rejectWithValue }
   ) => {
     try {
       const response = await axios.post(`${API_URL}/login`, credentials);
       setLocalStorageItem("token", response.data.accessToken);
+      await dispatch(fetchUser());
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response.data || "Login failed");
@@ -29,13 +35,14 @@ export const register = createAsyncThunk<
   Token,
   RegisterCredentials,
   { rejectValue: string }
->("auth/register", async (credentials, { rejectWithValue }) => {
+>("auth/register", async (credentials, { dispatch, rejectWithValue }) => {
   try {
     const response = await axios.post<Token>(
       `${API_URL}/register`,
       credentials
     );
     setLocalStorageItem("token", response.data.accessToken);
+    await dispatch(fetchUser());
     return response.data;
   } catch (error: any) {
     return rejectWithValue(
@@ -44,23 +51,26 @@ export const register = createAsyncThunk<
   }
 });
 
-export const fetchUser = createAsyncThunk<User, void, { rejectValue: string }>(
-  "auth/fetchUser",
-  async (_, { rejectWithValue }) => {
-    try {
-      const token = getLocalStorageItem("token");
-      if (!token) throw new Error("No token found");
-      const response = await axios.get<User>(`${API_URL}/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      return response.data;
-    } catch (error: any) {
-      return rejectWithValue(
-        error.response?.data?.message || "Failed to fetch user"
-      );
-    }
+export const fetchUser = createAsyncThunk<
+  User & { student?: Student; lecturer?: Lecturer },
+  void,
+  { rejectValue: string }
+>("auth/fetchUser", async (_, { rejectWithValue }) => {
+  try {
+    const token = getLocalStorageItem("token");
+    if (!token) throw new Error("No token found");
+    const response = await axios.get<
+      User & { student?: Student; lecturer?: Lecturer }
+    >(`${API_URL}/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    return response.data;
+  } catch (error: any) {
+    return rejectWithValue(
+      error.response?.data?.message || "Failed to fetch user"
+    );
   }
-);
+});
 
 const initialState: AuthState = {
   user: null,
@@ -116,11 +126,19 @@ const authSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchUser.fulfilled, (state, action: PayloadAction<User>) => {
-        state.loading = false;
-        state.isAuthenticated = true;
-        state.user = action.payload;
-      })
+      .addCase(
+        fetchUser.fulfilled,
+        (
+          state,
+          action: PayloadAction<
+            User & { student?: Student; lecturer?: Lecturer }
+          >
+        ) => {
+          state.loading = false;
+          state.isAuthenticated = true;
+          state.user = action.payload;
+        }
+      )
       .addCase(fetchUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Failed to fetch user";
