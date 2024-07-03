@@ -1,12 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import axios from "axios";
-import {
-  AuthState,
-  LoginCredentials,
-  RegisterCredentials,
-  User,
-  Token,
-} from "../../types/auth";
+import { AuthState, RegisterCredentials, User, Token } from "../../types/auth";
 import {
   getLocalStorageItem,
   setLocalStorageItem,
@@ -54,10 +48,9 @@ export const fetchUser = createAsyncThunk<User, void, { rejectValue: string }>(
   "auth/fetchUser",
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = getLocalStorageItem("token");
       if (!token) throw new Error("No token found");
-
-      const response = await axios.get<User>(`${API_URL}/user/${email}`, {
+      const response = await axios.get<User>(`${API_URL}/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       return response.data;

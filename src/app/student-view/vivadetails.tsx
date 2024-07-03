@@ -31,7 +31,14 @@ const vivaDetails: VivaDetails = {
 
 export default function VivaDetails() {
   return (
-    <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: '#f5f5f5' }}>
+  
+    <Box sx={{ minHeight: '100vh', 
+      display: 'flex', 
+      alignItems: 'flex-start', 
+      justifyContent: 'center', 
+      bgcolor: '#f5f5f5',
+      pt: 4,
+      boxShadow:1 }}>
       <Card sx={{ maxWidth: 600, width: '100%', m: 2 }}>
         <CardContent>
           <Typography variant="h4" component="h1" gutterBottom align="center">

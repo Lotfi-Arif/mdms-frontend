@@ -46,6 +46,7 @@ export default function ProjectList() {
   };
 
   return (
+    <Box sx={{ p: 2, bgcolor: '#f5f5f5' , boxShadow:1 }}>
     <div style={{ padding: '20px' }}>
       <Typography variant="h4" gutterBottom>
         Project List
@@ -85,5 +86,6 @@ export default function ProjectList() {
         </Table>
       </TableContainer>
     </div>
+    </Box>
   );
 }

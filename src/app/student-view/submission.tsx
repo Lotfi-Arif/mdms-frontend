@@ -1,89 +1,123 @@
-import React, { useState } from 'react';
-import { Tabs, Tab, Box, Button } from '@mui/material';
-import FileUpload from '@/components/FileUpload';
+import React, { useState } from "react";
+import { Tab, Tabs, TabList, TabPanel } from "react-tabs";
+import "react-tabs/style/react-tabs.css";
+import styles from "@/styles/Submission.module.css";
+import { Box } from "@mui/material";
 
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
+interface FileUpload {
+  id: string;
+  name: string;
+  file: File | null;
 }
+type SetterFunction<T extends FileUpload | FileUpload[]> = React.Dispatch<React.SetStateAction<T>>;
 
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
+const Submission: React.FC = () => {
+  const [proposalFile, setProposalFile] = useState<FileUpload>({
+    id: "proposal",
+    name: "Proposal",
+    file: null,
+  });
+  const [progress1Files, setProgress1Files] = useState<FileUpload[]>([
+    { id: "demo1", name: "Demo slide", file: null },
+    { id: "logbook1", name: "Logbook", file: null },
+    { id: "report1", name: "PSM-report", file: null },
+  ]);
+  const [progress2Files, setProgress2Files] = useState<FileUpload[]>([
+    { id: "demo2", name: "Demo slide", file: null },
+    { id: "logbook2", name: "Logbook", file: null },
+    { id: "report2", name: "PSM-report", file: null },
+  ]);
+  const [finalFiles, setFinalFiles] = useState<FileUpload[]>([
+    { id: "presentation", name: "Presentation Slide", file: null },
+    { id: "logbookFinal", name: "Logbook", file: null },
+    { id: "reportTOC", name: "PSM Report (TOC)", file: null },
+    { id: "reportCh1", name: "PSM Report (Chapter 1)", file: null },
+    { id: "reportFull", name: "PSM Report (Full)", file: null },
+    { id: "shortPaper", name: "Short paper", file: null },
+  ]);
 
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+  const handleFileChange = <T extends FileUpload | FileUpload[]>(
+    event: React.ChangeEvent<HTMLInputElement>,
+    setterFunction: SetterFunction<T>,
+    id: string
+  ) => {
+    const file = event.target.files?.[0] || null;
+    setterFunction((prev: T) => {
+      if (Array.isArray(prev)) {
+        return prev.map(item => item.id === id ? { ...item, file } : item) as T;
+      } else {
+        return { ...prev, file } as T;
+      }
+    });
+  };
+  
+  const handleDelete = <T extends FileUpload | FileUpload[]>(
+    setterFunction: SetterFunction<T>,
+    id: string
+  ) => {
+    setterFunction((prev: T) => {
+      if (Array.isArray(prev)) {
+        return prev.map(item => item.id === id ? { ...item, file: null } : item) as T;
+      } else {
+        return { ...prev, file: null } as T;
+      }
+    });
+  };
+
+  const renderFileUpload = <T extends FileUpload | FileUpload[]>(
+    fileUpload: FileUpload,
+    setterFunction: SetterFunction<T>
+  ) => (
+    <div key={fileUpload.id} className={styles.fileUpload}>
+      <label htmlFor={fileUpload.id}>{fileUpload.name}:</label>
+      <input
+        type="file"
+        id={fileUpload.id}
+        onChange={(e) => handleFileChange(e, setterFunction, fileUpload.id)}
+      />
+      {fileUpload.file && (
+        <div>
+          <span>{fileUpload.file.name}</span>
+          <button onClick={() => handleDelete(setterFunction, fileUpload.id)}>Delete</button>
+        </div>
+      )}
     </div>
   );
-}
-
-export default function StudentSubmission() {
-  const [value, setValue] = useState(0);
-  const [uploadedFiles, setUploadedFiles] = useState<boolean[][]>(
-    Array(4).fill(Array(4).fill(false))
-  );
-
-  const handleChange = (event: React.SyntheticEvent, newValue: number) => {
-    setValue(newValue);
-  };
-
-  const handleFileUpload = (tabIndex: number, fileIndex: number) => {
-    const newUploadedFiles = [...uploadedFiles];
-    newUploadedFiles[tabIndex] = [...newUploadedFiles[tabIndex]];
-    newUploadedFiles[tabIndex][fileIndex] = true;
-    setUploadedFiles(newUploadedFiles);
-  };
-
-  const isTabEnabled = (tabIndex: number) => {
-    if (tabIndex === 0) return true;
-    return uploadedFiles[tabIndex - 1].every(file => file);
-  };
-
-  const renderTabs = () => {
-    return ['Page 1', 'Page 2', 'Page 3', 'Page 4'].map((label, index) => (
-      <Tab
-        key={index}
-        label={label}
-        disabled={!isTabEnabled(index)}
-      />
-    ));
-  };
-
-  const renderTabPanels = () => {
-    return [0, 1, 2, 3].map(tabIndex => (
-      <TabPanel key={tabIndex} value={value} index={tabIndex}>
-        <h2>Upload Files for {`Page ${tabIndex + 1}`}</h2>
-        {[0, 1, 2, 3].map(fileIndex => (
-          <FileUpload
-            key={fileIndex}
-            onUpload={() => handleFileUpload(tabIndex, fileIndex)}
-            isUploaded={uploadedFiles[tabIndex][fileIndex]}
-          />
-        ))}
-        {tabIndex < 3 && uploadedFiles[tabIndex].every(file => file) && (
-          <Button onClick={() => setValue(tabIndex + 1)}>
-            Next Page
-          </Button>
-        )}
-      </TabPanel>
-    ));
-  };
 
   return (
-    <Box sx={{ width: '100%' }}>
-      <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-        <Tabs value={value} onChange={handleChange} aria-label="student submission tabs">
-          {renderTabs()}
+    <div className={styles.container}>
+      <Box sx={{ p: 2, bgcolor: '#f5f5f5' }}>
+      <h1><b>Submission Page</b></h1>
+      <div className={styles.card}>
+        <Tabs>
+          <TabList>
+            <Tab>Proposal</Tab>
+            <Tab>Progress 1</Tab>
+            <Tab>Progress 2</Tab>
+            <Tab>Final Progress</Tab>
+          </TabList>
+  
+          <TabPanel>
+            <h2>Proposal</h2>
+            {renderFileUpload(proposalFile, setProposalFile)}
+          </TabPanel>
+          <TabPanel>
+            <h2>Progress 1</h2>
+            {progress1Files.map(file => renderFileUpload(file, setProgress1Files))}
+          </TabPanel>
+          <TabPanel>
+            <h2>Progress 2</h2>
+            {progress2Files.map(file => renderFileUpload(file, setProgress2Files))}
+          </TabPanel>
+          <TabPanel>
+            <h2>Final Progress</h2>
+            {finalFiles.map(file => renderFileUpload(file, setFinalFiles))}
+          </TabPanel>
         </Tabs>
+      </div>
       </Box>
-      {renderTabPanels()}
-    </Box>
+    </div>
   );
-}
+};
+
+export default Submission;
