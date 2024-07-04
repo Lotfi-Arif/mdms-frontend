@@ -1,4 +1,5 @@
-import React from "react";
+"use client";
+import React, { useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -11,6 +12,9 @@ import {
 } from "@mui/material";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import PendingIcon from "@mui/icons-material/Pending";
+import { RootState } from "../../../store";
+import { useRouter } from "next/navigation";
+import { useSelector } from "react-redux";
 
 interface SemesterInfo {
   session: string;
@@ -65,6 +69,21 @@ export default function ProgressPage() {
     semesterInfo.progress1Date,
     semesterInfo.presentationDate
   );
+
+  const { user, isAuthenticated } = useSelector(
+    (state: RootState) => state.auth
+  );
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isAuthenticated && !user?.student) {
+      router.push("/login");
+    }
+  }, [isAuthenticated, user, router]);
+
+  if (!isAuthenticated || !user?.student) {
+    return null;
+  }
 
   return (
     <Box sx={{ p: 3, bgcolor: "#f5f5f5", minHeight: "100vh" }}>

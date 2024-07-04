@@ -1,32 +1,36 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import axios from "axios";
-import { AuthState, RegisterCredentials, Token } from "../../types/auth";
+import {
+  AuthState,
+  LoginCredentials,
+  RegisterCredentials,
+  Token,
+} from "../../types/auth";
 import {
   getLocalStorageItem,
   setLocalStorageItem,
   removeLocalStorageItem,
 } from "../../utils/localStorage";
 import {
-  Lecturer,
-  Student,
   User,
+  Student,
+  Lecturer,
+  Supervisor,
+  Examiner,
 } from "@lotfiarif-development/mdms-prisma-schema";
 
 const API_URL = "http://localhost:3001/auth";
 
 export const login = createAsyncThunk(
   "auth/login",
-  async (
-    credentials: { email: string; password: string },
-    { dispatch, rejectWithValue }
-  ) => {
+  async (credentials: LoginCredentials, { dispatch, rejectWithValue }) => {
     try {
-      const response = await axios.post(`${API_URL}/login`, credentials);
+      const response = await axios.post<Token>(`${API_URL}/login`, credentials);
       setLocalStorageItem("token", response.data.accessToken);
       await dispatch(fetchUser());
       return response.data;
     } catch (error: any) {
-      return rejectWithValue(error.response.data || "Login failed");
+      return rejectWithValue(error.response?.data || "Login failed");
     }
   }
 );
@@ -52,7 +56,13 @@ export const register = createAsyncThunk<
 });
 
 export const fetchUser = createAsyncThunk<
-  User & { student?: Student; lecturer?: Lecturer },
+  User & {
+    student?: Student;
+    lecturer?: Lecturer & {
+      supervisor?: Supervisor;
+      examiner?: Examiner;
+    };
+  },
   void,
   { rejectValue: string }
 >("auth/fetchUser", async (_, { rejectWithValue }) => {
@@ -60,7 +70,13 @@ export const fetchUser = createAsyncThunk<
     const token = getLocalStorageItem("token");
     if (!token) throw new Error("No token found");
     const response = await axios.get<
-      User & { student?: Student; lecturer?: Lecturer }
+      User & {
+        student?: Student;
+        lecturer?: Lecturer & {
+          supervisor?: Supervisor;
+          examiner?: Examiner;
+        };
+      }
     >(`${API_URL}/me`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -71,6 +87,27 @@ export const fetchUser = createAsyncThunk<
     );
   }
 });
+
+export const checkAuth = createAsyncThunk(
+  "auth/checkAuth",
+  async (_, { dispatch }) => {
+    const token = getLocalStorageItem("token");
+    if (token) {
+      try {
+        // Set the token in your axios instance or headers
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        // Fetch the user data
+        await dispatch(fetchUser());
+      } catch (error) {
+        // If there's an error (e.g., token expired), clear the auth state
+        dispatch(logout());
+        throw error;
+      }
+    } else {
+      throw new Error("No token found");
+    }
+  }
+);
 
 const initialState: AuthState = {
   user: null,
@@ -107,7 +144,7 @@ const authSlice = createSlice({
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.error.message || "Login failed";
+        state.error = action.payload as string;
       })
       .addCase(register.pending, (state) => {
         state.loading = true;
@@ -131,7 +168,13 @@ const authSlice = createSlice({
         (
           state,
           action: PayloadAction<
-            User & { student?: Student; lecturer?: Lecturer }
+            User & {
+              student?: Student;
+              lecturer?: Lecturer & {
+                supervisor?: Supervisor;
+                examiner?: Examiner;
+              };
+            }
           >
         ) => {
           state.loading = false;
@@ -143,6 +186,19 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload || "Failed to fetch user";
         state.isAuthenticated = false;
+        state.token = null;
+        removeLocalStorageItem("token");
+      })
+      .addCase(checkAuth.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(checkAuth.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(checkAuth.rejected, (state) => {
+        state.loading = false;
+        state.isAuthenticated = false;
+        state.user = null;
         state.token = null;
         removeLocalStorageItem("token");
       });

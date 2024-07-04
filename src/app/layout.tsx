@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Providers } from "./providers";
 import NavBar from "./components/NavBar";
+import { AuthWrapper } from "./components/AuthWrapper";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -21,10 +22,12 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <Providers>
-          <div style={{ display: "flex" }}>
-            <NavBar />
-            <main style={{ flexGrow: 1, padding: "20px" }}>{children}</main>
-          </div>
+          <AuthWrapper>
+            <div style={{ display: "flex" }}>
+              <NavBar />
+              <main style={{ flexGrow: 1, padding: "20px" }}>{children}</main>
+            </div>
+          </AuthWrapper>
         </Providers>
       </body>
     </html>
