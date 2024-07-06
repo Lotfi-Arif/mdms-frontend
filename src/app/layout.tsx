@@ -2,9 +2,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { Providers } from "./providers";
-import NavBar from "./components/NavBar";
+const NavBar = dynamic(() => import("./components/NavBar"));
 import { AuthWrapper } from "./components/AuthWrapper";
-import "./globals.css";
+import dynamic from "next/dynamic";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -25,7 +25,9 @@ export default function RootLayout({
           <AuthWrapper>
             <div style={{ display: "flex" }}>
               <NavBar />
-              <main style={{ flexGrow: 1, padding: "20px" }}>{children}</main>
+              <main style={{ flexGrow: 1, padding: "20px", marginTop: "64px" }}>
+                {children}
+              </main>
             </div>
           </AuthWrapper>
         </Providers>

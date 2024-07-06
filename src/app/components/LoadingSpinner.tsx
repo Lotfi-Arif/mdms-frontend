@@ -1,4 +1,3 @@
-// src/app/components/LoadingSpinner.tsx
 "use client";
 
 import React from "react";

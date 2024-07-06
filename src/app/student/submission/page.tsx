@@ -1,3 +1,4 @@
+"use client";
 import React, { useState } from "react";
 import { Box, Tabs, Tab, Typography, Button } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";

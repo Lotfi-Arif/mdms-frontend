@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "../../store";
 import { useRouter } from "next/navigation";
 import { fetchUser } from "../../store/auth/authSlice";
+import LoadingSpinner from "@/app/components/LoadingSpinner";
 
 export default function Dashboard() {
   const { user, isAuthenticated, loading } = useSelector(
@@ -13,15 +14,18 @@ export default function Dashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push("/login");
-    } else if (isAuthenticated && !user) {
+    if (isAuthenticated && !user && !loading) {
       dispatch(fetchUser());
     }
-  }, [isAuthenticated, user, router, dispatch]);
+  }, [isAuthenticated, user, loading, dispatch]);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <LoadingSpinner />;
+  }
+
+  if (!isAuthenticated) {
+    router.replace("/login");
+    return null;
   }
 
   if (!user) {

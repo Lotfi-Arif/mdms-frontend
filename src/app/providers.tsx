@@ -1,12 +1,10 @@
 "use client";
-
 import React from "react";
 import { Provider } from "react-redux";
 import { store } from "../store";
-import { ThemeProvider, CssBaseline } from "@mui/material";
-import { createTheme } from "@mui/material/styles";
-
-const theme = createTheme();
+import { ThemeProvider } from "@mui/material/styles";
+import CssBaseline from "@mui/material/CssBaseline";
+import theme from "@/styles/theme";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (

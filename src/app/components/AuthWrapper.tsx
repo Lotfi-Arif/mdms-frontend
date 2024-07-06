@@ -1,52 +1,31 @@
 "use client";
 import React, { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { useSelector, useDispatch } from "react-redux";
-import { RootState, AppDispatch } from "@/store";
-import { checkAuth } from "@/store/auth/authSlice";
-import { CircularProgress, Box } from "@mui/material";
+import { useAuth } from "@/hooks/useAuth";
+import LoadingSpinner from "./LoadingSpinner";
 
-// TODO: Add public routes here
-const publicRoutes = ["/login", "/register", "/"]; 
+const publicRoutes = ["/login", "/register", "/"];
 
 export const AuthWrapper: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const dispatch = useDispatch<AppDispatch>();
+  const { isAuthenticated, loading, authChecked } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, loading } = useSelector(
-    (state: RootState) => state.auth
-  );
-
-  useEffect(() => {
-    if (!isAuthenticated && !loading) {
-      dispatch(checkAuth());
-    }
-  }, [dispatch, isAuthenticated, loading]);
 
   useEffect(() => {
     if (
+      authChecked &&
       !loading &&
       !isAuthenticated &&
-      pathname &&
-      !publicRoutes.includes(pathname)
+      !publicRoutes.includes(pathname as string)
     ) {
-      router.push("/login");
+      router.replace("/login");
     }
-  }, [isAuthenticated, loading, router]);
+  }, [isAuthenticated, loading, authChecked, router, pathname]);
 
-  if (loading) {
-    return (
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        height="100vh"
-      >
-        <CircularProgress />
-      </Box>
-    );
+  if (loading || !authChecked) {
+    return <LoadingSpinner />;
   }
 
   return <>{children}</>;

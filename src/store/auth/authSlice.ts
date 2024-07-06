@@ -18,6 +18,7 @@ import {
   Supervisor,
   Examiner,
 } from "@lotfiarif-development/mdms-prisma-schema";
+import { RootState } from "..";
 
 const API_URL = "http://localhost:3001/auth";
 
@@ -90,16 +91,18 @@ export const fetchUser = createAsyncThunk<
 
 export const checkAuth = createAsyncThunk(
   "auth/checkAuth",
-  async (_, { dispatch }) => {
+  async (_, { dispatch, getState }) => {
+    const state = getState() as RootState;
+    if (state.auth.isAuthenticated) {
+      return; // Already authenticated, no need to check
+    }
+
     const token = getLocalStorageItem("token");
     if (token) {
       try {
-        // Set the token in your axios instance or headers
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-        // Fetch the user data
         await dispatch(fetchUser());
       } catch (error) {
-        // If there's an error (e.g., token expired), clear the auth state
         dispatch(logout());
         throw error;
       }

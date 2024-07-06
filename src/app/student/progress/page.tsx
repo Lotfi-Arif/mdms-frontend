@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React from "react";
 import {
   Card,
   CardContent,
@@ -11,10 +11,11 @@ import {
   Chip,
 } from "@mui/material";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
-import PendingIcon from "@mui/icons-material/Pending";
-import { RootState } from "../../../store";
-import { useRouter } from "next/navigation";
-import { useSelector } from "react-redux";
+import dynamic from "next/dynamic";
+const LoadingSpinner = dynamic(() => import("@/app/components/LoadingSpinner"));
+const PendingIcon = dynamic(() => import("@mui/icons-material/QueryBuilder"));
+import { useAuth } from "@/hooks/useAuth";
+const ErrorMessage = dynamic(() => import("@/app/components/ErrorMessage"));
 
 interface SemesterInfo {
   session: string;
@@ -70,19 +71,14 @@ export default function ProgressPage() {
     semesterInfo.presentationDate
   );
 
-  const { user, isAuthenticated } = useSelector(
-    (state: RootState) => state.auth
-  );
-  const router = useRouter();
+  const { user, loading } = useAuth();
 
-  useEffect(() => {
-    if (isAuthenticated && !user?.student) {
-      router.push("/login");
-    }
-  }, [isAuthenticated, user, router]);
+  if (loading) {
+    return <LoadingSpinner />;
+  }
 
-  if (!isAuthenticated || !user?.student) {
-    return null;
+  if (!user?.student) {
+    return <ErrorMessage message="Access denied. Student account required." />;
   }
 
   return (

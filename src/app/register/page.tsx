@@ -1,11 +1,9 @@
-"use client";
-
-import React from "react";
-import AuthForm from "../components/AuthForm";
+import dynamic from "next/dynamic";
+const AuthForm = dynamic(() => import("../components/AuthForm"));
 import { RegisterCredentials } from "../../types/auth";
 import { useDispatch } from "react-redux";
-import { AppDispatch } from "../../store";
-import { register } from "../../store/auth/authSlice";
+import { AppDispatch } from "@/store";
+import { register } from "@/store/auth/authSlice";
 import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
@@ -19,11 +17,13 @@ export default function RegisterPage() {
     }
   };
 
-  return (
-    <AuthForm
-      isLogin={false}
-      onSubmit={handleRegister}
-      switchAuthMode={() => router.push("/login")}
-    />
-  );
+  return null;
+
+  // return (
+  //   <AuthForm
+  //     isLogin={false}
+  //     onSubmit={handleRegister}
+  //     switchAuthMode={() => router.push("/login")}
+  //   />
+  // );
 }
