@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect } from "react";
+import React from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import LoadingSpinner from "./LoadingSpinner";
@@ -13,7 +13,7 @@ export const AuthWrapper: React.FC<{ children: React.ReactNode }> = ({
   const router = useRouter();
   const pathname = usePathname();
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (
       authChecked &&
       !loading &&

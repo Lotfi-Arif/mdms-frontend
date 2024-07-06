@@ -15,7 +15,7 @@ import {
 import MenuIcon from "@mui/icons-material/Menu";
 import { useAuth } from "../../hooks/useAuth";
 import { useAppDispatch } from "../../hooks/reduxHooks";
-import { logout } from "../../store/auth/authSlice";
+import { logout } from "../../store/user/authSlice";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 

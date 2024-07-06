@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { login, clearError } from "../../store/auth/authSlice";
+import { login, clearError } from "../../store/user/authSlice";
 import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
 import { LoginCredentials } from "../../types/auth";
 import { Alert, CircularProgress, Box, Typography } from "@mui/material";
@@ -14,27 +14,21 @@ export default function LoginPage() {
     (state) => state.auth
   );
 
-  // useEffect(() => {
-  //   if (isAuthenticated && user) {
-  //     if (user.student) {
-  //       router.push("/student/progress");
-  //     } else if (user.lecturer) {
-  //       if (user.lecturer.supervisor) {
-  //         router.push("/supervisor/student-progress");
-  //       } else if (user.lecturer.examiner) {
-  //         router.push("/examiner/viva-evaluations");
-  //       } else {
-  //         router.push("/lecturer/dashboard");
-  //       }
-  //     } else {
-  //       router.push("/dashboard");
-  //     }
-  //   }
-  // }, [isAuthenticated, user, router]);
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.student) {
+        router.replace("/student/progress");
+      } else if (user.lecturer) {
+        router.replace("/lecturer/dashboard");
+      } else {
+        router.replace("/dashboard");
+      }
+    }
+  }, [isAuthenticated, user, router]);
 
-  // useEffect(() => {
-  //   dispatch(clearError());
-  // }, [dispatch]);
+  useEffect(() => {
+    dispatch(clearError());
+  }, [dispatch]);
 
   const handleLogin = async (credentials: LoginCredentials) => {
     try {

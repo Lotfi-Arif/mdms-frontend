@@ -3,7 +3,7 @@ const AuthForm = dynamic(() => import("../components/AuthForm"));
 import { RegisterCredentials } from "../../types/auth";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "@/store";
-import { register } from "@/store/auth/authSlice";
+import { register } from "@/store/user/authSlice";
 import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {

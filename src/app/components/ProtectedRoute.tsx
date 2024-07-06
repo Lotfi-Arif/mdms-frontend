@@ -1,29 +1,24 @@
-// src/app/components/ProtectedRoute.tsx
 "use client";
-
-import React, { useEffect } from "react";
-import { useSelector } from "react-redux";
+import React from "react";
 import { useRouter } from "next/navigation";
-import { RootState } from "../../store";
 import LoadingSpinner from "./LoadingSpinner";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { isAuthenticated, loading } = useSelector(
-    (state: RootState) => state.auth
-  );
+  const { isAuthenticated, loading, authChecked } = useAuth();
   const router = useRouter();
 
-  useEffect(() => {
-    if (!isAuthenticated && !loading) {
-      router.push("/login");
+  React.useEffect(() => {
+    if (authChecked && !loading && !isAuthenticated) {
+      router.replace("/login");
     }
-  }, [isAuthenticated, loading, router]);
+  }, [isAuthenticated, loading, authChecked, router]);
 
-  if (loading) {
+  if (loading || !authChecked) {
     return <LoadingSpinner />;
   }
 

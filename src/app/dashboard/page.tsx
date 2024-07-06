@@ -3,8 +3,9 @@ import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "../../store";
 import { useRouter } from "next/navigation";
-import { fetchUser } from "../../store/auth/authSlice";
+import { fetchUser } from "../../store/user/authSlice";
 import LoadingSpinner from "@/app/components/LoadingSpinner";
+import ProtectedRoute from "../components/ProtectedRoute";
 
 export default function Dashboard() {
   const { user, isAuthenticated, loading } = useSelector(
@@ -33,9 +34,11 @@ export default function Dashboard() {
   }
 
   return (
-    <div>
-      <h1>Welcome to your dashboard, {user.firstName}!</h1>
-      {/* Add your dashboard content here */}
-    </div>
+    <ProtectedRoute>
+      <div>
+        <h1>Welcome to your dashboard, {user.firstName}!</h1>
+        {/* Add your dashboard content here */}
+      </div>
+    </ProtectedRoute>
   );
 }

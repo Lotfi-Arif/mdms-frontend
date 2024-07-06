@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useAppDispatch, useAppSelector } from "./reduxHooks";
-import { checkAuth } from "@/store/auth/authSlice";
+import { checkAuth } from "@/store/user/authSlice";
 
 export const useAuth = () => {
   const [authChecked, setAuthChecked] = useState(false);

@@ -29,10 +29,9 @@ export interface AuthState {
         };
       })
     | null;
-  token: string | null;
-  isAuthenticated: boolean;
+  token: Token | null;
   error: string | null;
-  loading: boolean;
+  isLoading: boolean;
 }
 
 export interface Token {
