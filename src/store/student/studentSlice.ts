@@ -15,14 +15,6 @@ interface FullUserWithStudent extends User {
     submissions: Submission[];
     viva?: Viva;
     supervisor?: User & { lecturer: { supervisor: Supervisor } };
-    progress1Date: string;
-    progress1Completed: boolean;
-    progress2Date: string;
-    progress2Completed: boolean;
-    finalReportDate: string;
-    finalReportCompleted: boolean;
-    presentationDate: string;
-    presentationCompleted: boolean;
   };
 }
 
@@ -42,20 +34,8 @@ const initialState: StudentState = {
   error: null,
 };
 
-export const fetchStudents = createAsyncThunk(
-  "student/fetchStudents",
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await api.get("/students");
-      return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error.response.data);
-    }
-  }
-);
-
 export const fetchStudentByEmail = createAsyncThunk(
-  "student/fetchStudentById",
+  "student/fetchStudentByEmail",
   async (email: string, { rejectWithValue }) => {
     try {
       const response = await api.get(`/students/${email}`);
@@ -82,41 +62,25 @@ export const addSubmission = createAsyncThunk(
   "student/addSubmission",
   async (
     {
-      studentId,
+      email,
       title,
-      content,
-    }: { studentId: string; title: string; content: string },
+      submissionType,
+      fileId,
+    }: {
+      email: string;
+      title: string;
+      submissionType: string;
+      fileId: string;
+    },
     { rejectWithValue }
   ) => {
     try {
-      const response = await api.post(`/students/${studentId}/submissions`, {
+      const response = await api.post(`/students/${email}/submissions`, {
+        email,
         title,
-        content,
+        submissionType,
+        fileId,
       });
-      return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error.response.data);
-    }
-  }
-);
-
-export const fetchVivaDetails = createAsyncThunk(
-  "student/fetchVivaDetails",
-  async (id: string, { rejectWithValue }) => {
-    try {
-      const response = await api.get(`/students/${id}/viva-details`);
-      return response.data;
-    } catch (error: any) {
-      return rejectWithValue(error.response.data);
-    }
-  }
-);
-
-export const fetchProjects = createAsyncThunk(
-  "student/fetchProjects",
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await api.get("/students/projects");
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response.data);
@@ -127,52 +91,62 @@ export const fetchProjects = createAsyncThunk(
 const studentSlice = createSlice({
   name: "student",
   initialState,
-  reducers: {},
+  reducers: {
+    clearError: (state) => {
+      state.error = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchStudents.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(
-        fetchStudents.fulfilled,
-        (state, action: PayloadAction<FullUserWithStudent[]>) => {
-          state.isLoading = false;
-          state.students = action.payload;
-        }
-      )
-      .addCase(fetchStudents.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
-      })
       .addCase(fetchStudentByEmail.pending, (state) => {
         state.isLoading = true;
-      })
-      .addCase(fetchStudentByEmail.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload as string;
+        state.error = null;
       })
       .addCase(
         fetchStudentByEmail.fulfilled,
         (state, action: PayloadAction<FullUserWithStudent>) => {
+          state.isLoading = false;
           state.currentStudent = action.payload;
         }
       )
+      .addCase(fetchStudentByEmail.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
       .addCase(fetchStudentProgress.pending, (state) => {
         state.isLoading = true;
+        state.error = null;
       })
       .addCase(
         fetchStudentProgress.fulfilled,
         (state, action: PayloadAction<{ progress: number }>) => {
+          state.isLoading = false;
           state.progress = action.payload.progress;
         }
       )
+      .addCase(fetchStudentProgress.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(addSubmission.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
       .addCase(
         addSubmission.fulfilled,
         (state, action: PayloadAction<Submission>) => {
-          state.currentStudent?.student.submissions.push(action.payload);
+          state.isLoading = false;
+          if (state.currentStudent) {
+            state.currentStudent.student.submissions.push(action.payload);
+          }
         }
-      );
+      )
+      .addCase(addSubmission.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      });
   },
 });
 
+export const { clearError } = studentSlice.actions;
 export default studentSlice.reducer;

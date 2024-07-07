@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import api from "@/utils/axiosConfig";
-import { Submission } from "@prisma/client";
+import { Submission } from "@lotfiarif-development/mdms-prisma-schema";
 
 interface SubmissionState {
   submissions: Submission[];
@@ -16,11 +16,19 @@ const initialState: SubmissionState = {
   error: null,
 };
 
-export const fetchSubmissions = createAsyncThunk(
-  "submission/fetchSubmissions",
-  async (studentId: string, { rejectWithValue }) => {
+export const createSubmission = createAsyncThunk(
+  "submission/createSubmission",
+  async (
+    submissionData: {
+      title: string;
+      submissionType: string;
+      fileId: string;
+      email: string;
+    },
+    { rejectWithValue }
+  ) => {
     try {
-      const response = await api.get(`/students/${studentId}/submissions`);
+      const response = await api.post("/submissions", submissionData);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response.data);
@@ -28,11 +36,11 @@ export const fetchSubmissions = createAsyncThunk(
   }
 );
 
-export const createSubmission = createAsyncThunk(
-  "submission/createSubmission",
-  async (submissionData: Partial<Submission>, { rejectWithValue }) => {
+export const getSubmissions = createAsyncThunk(
+  "submission/getSubmissions",
+  async (studentId: string, { rejectWithValue }) => {
     try {
-      const response = await api.post("/submissions", submissionData);
+      const response = await api.get(`/submissions/${studentId}`);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response.data);
@@ -43,30 +51,44 @@ export const createSubmission = createAsyncThunk(
 const submissionSlice = createSlice({
   name: "submission",
   initialState,
-  reducers: {},
+  reducers: {
+    clearSubmissionError: (state) => {
+      state.error = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchSubmissions.pending, (state) => {
+      .addCase(createSubmission.pending, (state) => {
         state.isLoading = true;
       })
       .addCase(
-        fetchSubmissions.fulfilled,
+        createSubmission.fulfilled,
+        (state, action: PayloadAction<Submission>) => {
+          state.isLoading = false;
+          state.submissions.push(action.payload);
+          state.currentSubmission = action.payload;
+        }
+      )
+      .addCase(createSubmission.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(getSubmissions.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(
+        getSubmissions.fulfilled,
         (state, action: PayloadAction<Submission[]>) => {
           state.isLoading = false;
           state.submissions = action.payload;
         }
       )
-      .addCase(fetchSubmissions.rejected, (state, action) => {
+      .addCase(getSubmissions.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
-      })
-      .addCase(
-        createSubmission.fulfilled,
-        (state, action: PayloadAction<Submission>) => {
-          state.submissions.push(action.payload);
-        }
-      );
+      });
   },
 });
 
+export const { clearSubmissionError } = submissionSlice.actions;
 export default submissionSlice.reducer;

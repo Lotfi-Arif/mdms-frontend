@@ -357,10 +357,10 @@
     "@jridgewell/resolve-uri" "^3.1.0"
     "@jridgewell/sourcemap-codec" "^1.4.14"
 
-"@lotfiarif-development/mdms-prisma-schema@^0.0.7":
-  version "0.0.7"
-  resolved "https://registry.yarnpkg.com/@lotfiarif-development/mdms-prisma-schema/-/mdms-prisma-schema-0.0.7.tgz#3ed990b3869213296f5ed25fc20abb5f00561bd3"
-  integrity sha512-k+Z0NeRVHXY53qiECAW0pE01964xxJIueiAgX44xiQZBtpcnWu0E4RXE5h1aRMdjcI7HtkBk7bMyiF4vBb69Xg==
+"@lotfiarif-development/mdms-prisma-schema@^0.0.8":
+  version "0.0.8"
+  resolved "https://registry.yarnpkg.com/@lotfiarif-development/mdms-prisma-schema/-/mdms-prisma-schema-0.0.8.tgz#8e1cd49b47fd63549ef029cd161c9c978b57b6f7"
+  integrity sha512-VKuPb0TYw1VmhM256gby2obxLy1fEGWOAxfjJ75nJcp+1DwlrLw0RzM3Q/hTLjao3DPQNhYMZVREhO2UhZCWxQ==
 
 "@mui/base@5.0.0-beta.40":
   version "5.0.0-beta.40"

@@ -1,8 +1,18 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Box, Tabs, Tab, Typography, Button } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { useDispatch } from "react-redux";
+import { AppDispatch } from "@/store";
+import {
+  fetchStudentByEmail,
+  addSubmission,
+  clearError,
+} from "@/store/student/studentSlice";
+import { uploadFile } from "@/store/file-upload/fileUploadSlice";
+import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
 
 interface FileUpload {
   id: string;
@@ -13,6 +23,9 @@ interface FileUpload {
 type SubmissionStage = "proposal" | "progress1" | "progress2" | "final";
 
 export default function SubmissionPage() {
+  const dispatch = useDispatch<AppDispatch>();
+  const { currentUser, isLoading } = useAuth();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<SubmissionStage>("proposal");
   const [files, setFiles] = useState<Record<SubmissionStage, FileUpload[]>>({
     proposal: [{ id: "proposal", name: "Proposal", file: null }],
@@ -36,6 +49,18 @@ export default function SubmissionPage() {
     ],
   });
 
+  useEffect(() => {
+    if (!currentUser) {
+      return router.push("/login");
+    }
+    if (currentUser?.email) {
+      dispatch(fetchStudentByEmail(currentUser.email));
+    }
+    return () => {
+      dispatch(clearError());
+    };
+  }, [currentUser, router, dispatch]);
+
   const handleFileChange = (
     stage: SubmissionStage,
     id: string,
@@ -51,6 +76,36 @@ export default function SubmissionPage() {
 
   const handleDelete = (stage: SubmissionStage, id: string) => {
     handleFileChange(stage, id, null);
+  };
+
+  const handleSubmit = async () => {
+    if (!currentUser?.email) {
+      alert("User information is missing");
+      return;
+    }
+
+    for (const fileUpload of files[activeTab]) {
+      if (fileUpload.file) {
+        const formData = new FormData();
+        formData.append("file", fileUpload.file);
+        formData.append("title", fileUpload.name);
+        formData.append("submissionType", activeTab);
+        formData.append("studentEmail", currentUser.email);
+
+        // Log the FormData
+        Array.from(formData.entries()).forEach(([key, value]) => {
+          console.log(key, value);
+        });
+
+        try {
+          const response = await dispatch(uploadFile(formData)).unwrap();
+          alert(response.message);
+        } catch (error) {
+          console.error("Error uploading file and creating submission:", error);
+          alert("Error uploading file and creating submission");
+        }
+      }
+    }
   };
 
   const renderFileUpload = (stage: SubmissionStage, fileUpload: FileUpload) => (
@@ -114,6 +169,15 @@ export default function SubmissionPage() {
           {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
         </Typography>
         {files[activeTab].map((file) => renderFileUpload(activeTab, file))}
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={handleSubmit}
+          disabled={isLoading}
+          sx={{ mt: 2 }}
+        >
+          Submit
+        </Button>
       </Box>
     </Box>
   );

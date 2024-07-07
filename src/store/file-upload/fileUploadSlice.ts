@@ -21,9 +21,7 @@ export const uploadFile = createAsyncThunk(
   async (file: FormData, { rejectWithValue }) => {
     try {
       const response = await api.post("/files/upload", file, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
       return response.data;
     } catch (error: any) {
@@ -37,9 +35,7 @@ export const uploadMultipleFiles = createAsyncThunk(
   async (files: FormData, { rejectWithValue }) => {
     try {
       const response = await api.post("/files/uploads", files, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
       return response.data;
     } catch (error: any) {
@@ -63,7 +59,11 @@ export const getFile = createAsyncThunk(
 const fileUploadSlice = createSlice({
   name: "fileUpload",
   initialState,
-  reducers: {},
+  reducers: {
+    clearFileUploadError: (state) => {
+      state.error = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(uploadFile.pending, (state) => {
@@ -72,6 +72,7 @@ const fileUploadSlice = createSlice({
       .addCase(uploadFile.fulfilled, (state, action: PayloadAction<File>) => {
         state.isLoading = false;
         state.files.push(action.payload);
+        state.currentFile = action.payload;
       })
       .addCase(uploadFile.rejected, (state, action) => {
         state.isLoading = false;
@@ -98,8 +99,10 @@ const fileUploadSlice = createSlice({
         } else {
           state.files.push(action.payload);
         }
+        state.currentFile = action.payload;
       });
   },
 });
 
+export const { clearFileUploadError } = fileUploadSlice.actions;
 export default fileUploadSlice.reducer;

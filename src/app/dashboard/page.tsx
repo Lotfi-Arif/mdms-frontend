@@ -12,7 +12,6 @@ import {
   ListItem,
   ListItemText,
   Button,
-  CircularProgress,
 } from "@mui/material";
 
 // You'll need to create these hooks or adjust based on your actual implementation
@@ -20,7 +19,7 @@ import { useStudent } from "@/hooks/useStudent";
 import { useLecturer } from "@/hooks/useLecturer";
 
 export default function Dashboard() {
-  const { currentUser, isLoading } = useAuth();
+  const { currentUser } = useAuth();
   const router = useRouter();
   const { currentStudent, fetchStudentByEmail } = useStudent();
   const { currentLecturer, fetchLecturerById } = useLecturer();
@@ -36,10 +35,6 @@ export default function Dashboard() {
       router.push("/login");
     }
   }, [currentUser, router, fetchStudentByEmail, fetchLecturerById]);
-
-  // if (isLoading) {
-  //   return <CircularProgress />;
-  // }
 
   if (!currentUser) {
     return (
