@@ -1,74 +1,58 @@
 "use client";
-import React, { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { login, clearError } from "../../store/user/authSlice";
-import { useAppDispatch, useAppSelector } from "../../hooks/reduxHooks";
-import { LoginCredentials } from "../../types/auth";
-import { Alert, CircularProgress, Box, Typography } from "@mui/material";
+
+import React, { useState } from "react";
 import AuthForm from "../components/AuthForm";
+import { useAuth } from "@/hooks/useAuth";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import { Box, CircularProgress, Paper, Typography } from "@mui/material";
 
 export default function LoginPage() {
-  const dispatch = useAppDispatch();
+  const { currentUser, isLoading } = useAuth();
   const router = useRouter();
-  const { loading, error, isAuthenticated, user } = useAppSelector(
-    (state) => state.auth
-  );
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
-    if (isAuthenticated && user) {
-      if (user.student) {
-        router.replace("/student/progress");
-      } else if (user.lecturer) {
-        router.replace("/lecturer/dashboard");
-      } else {
-        router.replace("/dashboard");
+    if (currentUser && !isRedirecting) {
+      setIsRedirecting(true);
+      if (currentUser.lecturer) {
+        router.push("/lecturer/dashboard");
+      } else if (currentUser.student) {
+        router.push("/student/progress");
       }
     }
-  }, [isAuthenticated, user, router]);
+  }, [currentUser, router, isRedirecting]);
 
-  useEffect(() => {
-    dispatch(clearError());
-  }, [dispatch]);
-
-  const handleLogin = async (credentials: LoginCredentials) => {
-    try {
-      await dispatch(login(credentials)).unwrap();
-    } catch (error) {
-      console.error("Login failed:", error);
-    }
-  };
+  if (isLoading || isRedirecting) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          minHeight: "100vh",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   return (
     <Box
       sx={{
         display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
         justifyContent: "center",
-        minHeight: "100vh",
-        bgcolor: "background.default",
+        alignItems: "center",
+        minHeight: "calc(100vh - 64px)",
       }}
     >
-      <Box sx={{ width: "100%", maxWidth: 400, p: 3 }}>
-        <Typography variant="h4" component="h1" gutterBottom align="center">
+      <Paper elevation={6} sx={{ p: 4, maxWidth: 400, width: "100%" }}>
+        <Typography variant="h4" component="h1" align="center" gutterBottom>
           Login
         </Typography>
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
-        <AuthForm
-          isLogin={true}
-          onSubmit={handleLogin}
-          switchAuthMode={() => router.push("/register")}
-        />
-        {loading && (
-          <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-            <CircularProgress />
-          </Box>
-        )}
-      </Box>
+        <AuthForm isLogin={true} />
+      </Paper>
     </Box>
   );
 }

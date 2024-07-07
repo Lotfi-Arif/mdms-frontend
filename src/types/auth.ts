@@ -16,10 +16,12 @@ export interface Token {
   refreshToken: string;
 }
 
-export interface FullUser extends User {
+interface FullUser extends User {
   student?: Student;
   lecturer?: Lecturer & {
     supervisor?: Supervisor;
     examiner?: Examiner;
   };
 }
+
+export type FullUserWithoutPassword = Omit<FullUser, "password">;

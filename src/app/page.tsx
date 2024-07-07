@@ -2,29 +2,45 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
-import dynamic from "next/dynamic";
-
-const LoadingSpinner = dynamic(() => import("@/app/components/LoadingSpinner"));
+import { Box, CircularProgress } from "@mui/material";
 
 export default function Home() {
+  const { currentUser, isLoading, isLoggedIn, initializeAuth } = useAuth();
   const router = useRouter();
-  const { isAuthenticated, user, loading, authChecked } = useAuth();
 
   useEffect(() => {
-    if (authChecked && !loading) {
-      if (!isAuthenticated) {
-        router.replace("/login");
-      } else if (user?.student) {
-        router.replace("/student/progress");
-      } else if (user?.lecturer) {
-        router.replace("/lecturer/dashboard");
+    initializeAuth();
+  }, [initializeAuth]);
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (!isLoggedIn) {
+        router.push("/login");
+      } else if (currentUser) {
+        if (currentUser.lecturer) {
+          router.push("/lecturer/dashboard");
+        } else if (currentUser.student) {
+          router.push("/student/progress");
+        }
       }
     }
-  }, [isAuthenticated, user, loading, authChecked, router]);
+  }, [currentUser, isLoading, isLoggedIn, router]);
 
-  if (loading || !authChecked) {
-    return <LoadingSpinner />;
+  if (isLoading) {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+        }}
+      >
+        <CircularProgress />
+      </Box>
+    );
   }
 
+  // This should never be rendered as the user will be redirected
   return null;
 }

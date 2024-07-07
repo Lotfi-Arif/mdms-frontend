@@ -13,7 +13,9 @@ interface FulluserWithLecturer extends User {
   lecturer: Lecturer & {
     supervisor?: Supervisor & {
       id: string;
-      students: Student[];
+      assignedStudents: (Student & {
+        user: User;
+      })[];
     };
     examiner?: Examiner;
   };

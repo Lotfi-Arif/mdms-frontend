@@ -1,18 +1,41 @@
-import { useEffect, useState } from "react";
-import { useAppDispatch, useAppSelector } from "./reduxHooks";
-import { checkAuth } from "@/store/user/authSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { RootState, AppDispatch } from "@/store";
+import { login, logout, initializeAuth } from "@/store/auth/authSlice";
+import { useCallback } from "react";
+import { LoginCredentials } from "@/types/auth";
 
 export const useAuth = () => {
-  const [authChecked, setAuthChecked] = useState(false);
-  const dispatch = useAppDispatch();
-  const auth = useAppSelector((state) => state.auth);
+  const dispatch = useDispatch<AppDispatch>();
+  const { currentUser, refreshToken, isLoading, error, isLoggedIn } =
+    useSelector((state: RootState) => state.auth);
 
-  useEffect(() => {
-    if (!auth.isAuthenticated && !auth.loading && !authChecked) {
-      dispatch(checkAuth());
-      setAuthChecked(true);
-    }
-  }, [auth.isAuthenticated, auth.loading, authChecked, dispatch]);
+  const loginUser = useCallback(
+    async (credentials: LoginCredentials) => {
+      const resultAction = await dispatch(login(credentials));
+      if (login.rejected.match(resultAction)) {
+        throw new Error(resultAction.payload || "Login failed");
+      }
+      return resultAction.payload;
+    },
+    [dispatch]
+  );
 
-  return { ...auth, authChecked };
+  const logoutUser = useCallback(() => {
+    return dispatch(logout());
+  }, [dispatch]);
+
+  const initAuth = useCallback(() => {
+    return dispatch(initializeAuth());
+  }, [dispatch]);
+
+  return {
+    currentUser,
+    refreshToken,
+    isLoading,
+    error,
+    isLoggedIn,
+    loginUser,
+    logoutUser,
+    initializeAuth: initAuth,
+  };
 };

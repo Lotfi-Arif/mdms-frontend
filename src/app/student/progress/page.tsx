@@ -1,4 +1,5 @@
 "use client";
+
 import React from "react";
 import {
   Card,
@@ -71,13 +72,13 @@ export default function ProgressPage() {
     semesterInfo.presentationDate
   );
 
-  const { user, loading } = useAuth();
+  const { currentUser, isLoading } = useAuth();
 
-  if (loading) {
+  if (isLoading) {
     return <LoadingSpinner />;
   }
 
-  if (!user?.student) {
+  if (!currentUser?.student) {
     return <ErrorMessage message="Access denied. Student account required." />;
   }
 

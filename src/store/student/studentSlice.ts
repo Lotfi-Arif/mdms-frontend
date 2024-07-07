@@ -4,6 +4,7 @@ import {
   Viva,
   Project,
   User,
+  Supervisor,
 } from "@lotfiarif-development/mdms-prisma-schema";
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import api from "@/utils/axiosConfig";
@@ -13,6 +14,7 @@ interface FullUserWithStudent extends User {
     project: Project;
     submissions: Submission[];
     viva?: Viva;
+    supervisor?: User & { lecturer: { supervisor: Supervisor } };
   };
 }
 
@@ -134,12 +136,22 @@ const studentSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
+      .addCase(fetchStudentById.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(fetchStudentById.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
       .addCase(
         fetchStudentById.fulfilled,
         (state, action: PayloadAction<FullUserWithStudent>) => {
           state.currentStudent = action.payload;
         }
       )
+      .addCase(fetchStudentProgress.pending, (state) => {
+        state.isLoading = true;
+      })
       .addCase(
         fetchStudentProgress.fulfilled,
         (state, action: PayloadAction<{ progress: number }>) => {
