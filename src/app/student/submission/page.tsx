@@ -79,8 +79,13 @@ export default function SubmissionPage() {
   };
 
   const handleSubmit = async () => {
-    if (!currentUser?.email) {
-      alert("User information is missing");
+    if (
+      !currentUser?.email ||
+      !currentUser?.student ||
+      !currentUser?.firstName ||
+      !currentUser?.lastName
+    ) {
+      alert("User data is missing. Please log in again.");
       return;
     }
 
@@ -98,11 +103,22 @@ export default function SubmissionPage() {
         });
 
         try {
-          const response = await dispatch(uploadFile(formData)).unwrap();
-          alert(response.message);
+          const fileResponse = await dispatch(uploadFile(formData)).unwrap();
+          const submissionResponse = await dispatch(
+            addSubmission({
+              email: currentUser.email,
+              title: fileUpload.name,
+              submissionType: activeTab,
+              fileId: fileResponse.file.id,
+            })
+          ).unwrap();
+
+          alert(
+            `File uploaded: ${fileResponse.message}, Submission created: ${submissionResponse.message}`
+          );
         } catch (error) {
-          console.error("Error uploading file and creating submission:", error);
-          alert("Error uploading file and creating submission");
+          console.error("Error uploading file or creating submission:", error);
+          alert("Error uploading file or creating submission");
         }
       }
     }
