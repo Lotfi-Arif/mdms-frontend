@@ -4,12 +4,14 @@ import { File } from "@lotfiarif-development/mdms-prisma-schema";
 
 interface FileUploadState {
   files: File[];
+  currentFile: File | null;
   isLoading: boolean;
   error: string | null;
 }
 
 const initialState: FileUploadState = {
   files: [],
+  currentFile: null,
   isLoading: false,
   error: null,
 };

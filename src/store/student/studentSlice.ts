@@ -3,28 +3,31 @@ import {
   Submission,
   Viva,
   Project,
+  User,
 } from "@lotfiarif-development/mdms-prisma-schema";
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import api from "@/utils/axiosConfig";
 
+interface FullUserWithStudent extends User {
+  student: Student & {
+    project: Project;
+    submissions: Submission[];
+    viva?: Viva;
+  };
+}
+
 interface StudentState {
-  students: Student[];
-  currentStudent: Student | null;
-  submissions: Submission[];
+  students: FullUserWithStudent[];
   progress: number;
-  viva: Viva | null;
-  projects: Project[];
+  currentStudent: FullUserWithStudent | null;
   isLoading: boolean;
   error: string | null;
 }
 
 const initialState: StudentState = {
   students: [],
-  currentStudent: null,
-  submissions: [],
   progress: 0,
-  viva: null,
-  projects: [],
+  currentStudent: null,
   isLoading: false,
   error: null,
 };
@@ -122,7 +125,7 @@ const studentSlice = createSlice({
       })
       .addCase(
         fetchStudents.fulfilled,
-        (state, action: PayloadAction<Student[]>) => {
+        (state, action: PayloadAction<FullUserWithStudent[]>) => {
           state.isLoading = false;
           state.students = action.payload;
         }
@@ -133,7 +136,7 @@ const studentSlice = createSlice({
       })
       .addCase(
         fetchStudentById.fulfilled,
-        (state, action: PayloadAction<Student>) => {
+        (state, action: PayloadAction<FullUserWithStudent>) => {
           state.currentStudent = action.payload;
         }
       )
@@ -146,21 +149,22 @@ const studentSlice = createSlice({
       .addCase(
         addSubmission.fulfilled,
         (state, action: PayloadAction<Submission>) => {
-          state.submissions.push(action.payload);
-        }
-      )
-      .addCase(
-        fetchVivaDetails.fulfilled,
-        (state, action: PayloadAction<Viva>) => {
-          state.viva = action.payload;
-        }
-      )
-      .addCase(
-        fetchProjects.fulfilled,
-        (state, action: PayloadAction<Project[]>) => {
-          state.projects = action.payload;
+          state.currentStudent?.student.submissions.push(action.payload);
         }
       );
+    // TODO: Uncomment the following lines after understanding the structure of the state
+    // .addCase(
+    //   fetchVivaDetails.fulfilled,
+    //   (state, action: PayloadAction<Viva>) => {
+    //     state.currentStudent?.student.viva = action.payload;
+    //   }
+    // )
+    // .addCase(
+    //   fetchProjects.fulfilled,
+    //   (state, action: PayloadAction<Project[]>) => {
+    //     state.students = action.payload;
+    //   }
+    // );
   },
 });
 

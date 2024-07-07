@@ -6,11 +6,20 @@ import {
   Viva,
   Lecturer,
   Project,
+  User,
+  Supervisor,
 } from "@lotfiarif-development/mdms-prisma-schema";
 
+interface FulluserWithExaminer extends User {
+  lecturer: Lecturer & {
+    examiner: Examiner;
+    superVisor?: Supervisor;
+  };
+}
+
 interface ExaminerState {
-  examiners: Examiner[];
-  currentExaminer: Examiner | null;
+  examiners: FulluserWithExaminer[];
+  currentExaminer: FulluserWithExaminer | null;
   nominations: Nomination[];
   vivas: Viva[];
   lecturers: Lecturer[];
@@ -167,7 +176,7 @@ const examinerSlice = createSlice({
       })
       .addCase(
         fetchExaminers.fulfilled,
-        (state, action: PayloadAction<Examiner[]>) => {
+        (state, action: PayloadAction<FulluserWithExaminer[]>) => {
           state.isLoading = false;
           state.examiners = action.payload;
         }
@@ -178,7 +187,7 @@ const examinerSlice = createSlice({
       })
       .addCase(
         fetchExaminerById.fulfilled,
-        (state, action: PayloadAction<Examiner>) => {
+        (state, action: PayloadAction<FulluserWithExaminer>) => {
           state.currentExaminer = action.payload;
         }
       )

@@ -5,19 +5,24 @@ import {
   Student,
   Supervisor,
   Examiner,
+  Nomination,
+  User,
 } from "@lotfiarif-development/mdms-prisma-schema";
 
+interface FulluserWithLecturer extends User {
+  lecturer: Lecturer & {
+    supervisor?: Supervisor & {
+      id: string;
+      students: Student[];
+    };
+    examiner?: Examiner;
+  };
+}
+
 interface LecturerState {
-  lecturers: Lecturer[];
-  currentLecturer:
-    | (Lecturer & {
-        supervisor?: Supervisor;
-        examiner?: Examiner;
-      })
-    | null;
-  supervisorRole: Supervisor | null;
-  examinerRole: Examiner | null;
-  assignedStudents: Student[];
+  lecturers: FulluserWithLecturer[];
+  currentLecturer: FulluserWithLecturer | null;
+  nominations: Nomination[];
   isLoading: boolean;
   error: string | null;
 }
@@ -25,9 +30,7 @@ interface LecturerState {
 const initialState: LecturerState = {
   lecturers: [],
   currentLecturer: null,
-  supervisorRole: null,
-  examinerRole: null,
-  assignedStudents: [],
+  nominations: [],
   isLoading: false,
   error: null,
 };
@@ -103,7 +106,7 @@ const lecturerSlice = createSlice({
       })
       .addCase(
         fetchLecturers.fulfilled,
-        (state, action: PayloadAction<Lecturer[]>) => {
+        (state, action: PayloadAction<FulluserWithLecturer[]>) => {
           state.isLoading = false;
           state.lecturers = action.payload;
         }
@@ -114,58 +117,26 @@ const lecturerSlice = createSlice({
       })
       .addCase(
         fetchLecturerById.fulfilled,
-        (
-          state,
-          action: PayloadAction<
-            Lecturer & {
-              supervisor?: Supervisor;
-              examiner?: Examiner;
-            }
-          >
-        ) => {
+        (state, action: PayloadAction<FulluserWithLecturer>) => {
           state.currentLecturer = action.payload;
-          state.supervisorRole = action.payload.supervisor || null;
-          state.examinerRole = action.payload.examiner || null;
         }
       )
       .addCase(
         makeLecturerSupervisor.fulfilled,
-        (
-          state,
-          action: PayloadAction<
-            Lecturer & {
-              supervisor?: Supervisor;
-              examiner?: Examiner;
-            }
-          >
-        ) => {
-          state.supervisorRole = action.payload;
+        (state, action: PayloadAction<FulluserWithLecturer>) => {
           if (state.currentLecturer) {
-            state.currentLecturer.supervisor = action.payload;
+            state.currentLecturer.lecturer.supervisor =
+              action.payload.lecturer.supervisor;
           }
         }
       )
       .addCase(
         makeLecturerExaminer.fulfilled,
-        (
-          state,
-          action: PayloadAction<
-            Lecturer & {
-              supervisor: Supervisor | null;
-              examiner: Examiner | null;
-            }
-          >
-        ) => {
-          state.examinerRole = action.payload.examiner;
+        (state, action: PayloadAction<FulluserWithLecturer>) => {
           if (state.currentLecturer) {
-            state.currentLecturer.examiner = action.payload.examiner;
+            state.currentLecturer.lecturer.examiner =
+              action.payload.lecturer.examiner;
           }
-        }
-      )
-      .addCase(
-        fetchAssignedStudents.fulfilled,
-        (state, action: PayloadAction<Student[]>) => {
-          state.assignedStudents = action.payload;
         }
       );
   },
