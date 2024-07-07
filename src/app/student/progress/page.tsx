@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -10,77 +10,79 @@ import {
   Box,
   Divider,
   Chip,
+  CircularProgress,
 } from "@mui/material";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
-import dynamic from "next/dynamic";
-const LoadingSpinner = dynamic(() => import("@/app/components/LoadingSpinner"));
-const PendingIcon = dynamic(() => import("@mui/icons-material/QueryBuilder"));
+import QueryBuilderIcon from "@mui/icons-material/QueryBuilder";
+import { useStudent } from "@/hooks/useStudent";
 import { useAuth } from "@/hooks/useAuth";
-const ErrorMessage = dynamic(() => import("@/app/components/ErrorMessage"));
-
-interface SemesterInfo {
-  session: string;
-  semester: number;
-  progress1Date: string;
-  progress2Date: string;
-  finalReportDate: string;
-  presentationDate: string;
-}
+import { useRouter } from "next/navigation";
 
 interface Milestone {
   name: string;
-  date: string;
-  completed: boolean;
+  date: Date | null;
+  completed: boolean | null;
 }
 
-const semesterInfo: SemesterInfo = {
-  session: "2023/2024",
-  semester: 2,
-  progress1Date: "2024-02-28",
-  progress2Date: "2024-04-06",
-  finalReportDate: "2024-06-07",
-  presentationDate: "2024-07-07",
-};
-
-const milestones: Milestone[] = [
-  { name: "Progress 1", date: semesterInfo.progress1Date, completed: true },
-  { name: "Progress 2", date: semesterInfo.progress2Date, completed: false },
-  {
-    name: "Final Report",
-    date: semesterInfo.finalReportDate,
-    completed: false,
-  },
-  {
-    name: "Presentation",
-    date: semesterInfo.presentationDate,
-    completed: false,
-  },
-];
-
-function calculateProgress(startDate: string, endDate: string): number {
-  const start = new Date(startDate).getTime();
-  const end = new Date(endDate).getTime();
-  const now = new Date().getTime();
-  if (now < start) return 0;
-  if (now > end) return 100;
-  return Math.round(((now - start) / (end - start)) * 100);
-}
-
-export default function ProgressPage() {
-  const progress = calculateProgress(
-    semesterInfo.progress1Date,
-    semesterInfo.presentationDate
-  );
-
+export default function MyProgressPage() {
   const { currentUser, isLoading } = useAuth();
+  const router = useRouter();
+  const { progress, error, fetchStudentByEmail, getProgress } = useStudent();
+
+  useEffect(() => {
+    if (!currentUser) {
+      router.push("/login");
+    } else if (currentUser?.student?.id) {
+      fetchStudentByEmail(currentUser.email);
+      getProgress(currentUser.email);
+    }
+  }, [currentUser, fetchStudentByEmail, getProgress, router]);
 
   if (isLoading) {
-    return <LoadingSpinner />;
+    return (
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        height="100vh"
+      >
+        <CircularProgress />
+      </Box>
+    );
   }
 
-  if (!currentUser?.student) {
-    return <ErrorMessage message="Access denied. Student account required." />;
+  if (!currentUser || !currentUser?.student) {
+    return (
+      <Typography color="error">
+        {error || "No student data available. Please log in as a student."}
+      </Typography>
+    );
   }
+
+  const student = currentUser.student;
+
+  const milestones: Milestone[] = [
+    {
+      name: "Progress 1",
+      date: student.progress1Date,
+      completed: student.progress1Completed,
+    },
+    {
+      name: "Progress 2",
+      date: student.progress2Date,
+      completed: student.progress2Completed,
+    },
+    {
+      name: "Final Report",
+      date: student.finalReportDate,
+      completed: student.finalReportCompleted,
+    },
+    {
+      name: "Presentation",
+      date: student.presentationDate,
+      completed: student.presentationCompleted,
+    },
+  ];
 
   return (
     <Box sx={{ p: 3, bgcolor: "#f5f5f5", minHeight: "100vh" }}>
@@ -89,7 +91,7 @@ export default function ProgressPage() {
       </Typography>
 
       <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -115,23 +117,18 @@ export default function ProgressPage() {
                 Current Semester Info:
               </Typography>
               <Grid container spacing={2}>
-                {Object.entries(semesterInfo).map(([key, value]) => (
-                  <React.Fragment key={key}>
+                {milestones.map((milestone) => (
+                  <React.Fragment key={milestone.name}>
                     <Grid item xs={6}>
                       <Typography variant="body1" color="text.secondary">
-                        {key.charAt(0).toUpperCase() +
-                          key
-                            .slice(1)
-                            .replace(/([A-Z])/g, " $1")
-                            .trim()}
-                        :
+                        {milestone.name} Date:
                       </Typography>
                     </Grid>
                     <Grid item xs={6}>
                       <Typography variant="body1">
-                        {key.includes("Date")
-                          ? new Date(value as string).toLocaleDateString()
-                          : value}
+                        {milestone.date
+                          ? new Date(milestone.date).toLocaleDateString()
+                          : "Not set"}
                       </Typography>
                     </Grid>
                   </React.Fragment>
@@ -141,7 +138,7 @@ export default function ProgressPage() {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -154,13 +151,15 @@ export default function ProgressPage() {
                       {milestone.completed ? (
                         <CheckCircleOutlineIcon color="success" />
                       ) : (
-                        <PendingIcon color="action" />
+                        <QueryBuilderIcon color="action" />
                       )}
                     </Grid>
                     <Grid item xs>
                       <Typography variant="body1">{milestone.name}</Typography>
                       <Typography variant="body2" color="text.secondary">
-                        {new Date(milestone.date).toLocaleDateString()}
+                        {milestone.date
+                          ? new Date(milestone.date).toLocaleDateString()
+                          : "Date not set"}
                       </Typography>
                     </Grid>
                     <Grid item>

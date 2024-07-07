@@ -22,24 +22,24 @@ import { useLecturer } from "@/hooks/useLecturer";
 export default function Dashboard() {
   const { currentUser, isLoading } = useAuth();
   const router = useRouter();
-  const { currentStudent, fetchStudentById } = useStudent();
+  const { currentStudent, fetchStudentByEmail } = useStudent();
   const { currentLecturer, fetchLecturerById } = useLecturer();
 
   useEffect(() => {
     if (currentUser) {
       if (currentUser.student) {
-        fetchStudentById(currentUser.student.id);
+        fetchStudentByEmail(currentUser.email);
       } else if (currentUser.lecturer) {
         fetchLecturerById(currentUser.lecturer.id);
       }
     } else {
       router.push("/login");
     }
-  }, [currentUser, router, fetchStudentById, fetchLecturerById]);
+  }, [currentUser, router, fetchStudentByEmail, fetchLecturerById]);
 
-  if (isLoading) {
-    return <CircularProgress />;
-  }
+  // if (isLoading) {
+  //   return <CircularProgress />;
+  // }
 
   if (!currentUser) {
     return (

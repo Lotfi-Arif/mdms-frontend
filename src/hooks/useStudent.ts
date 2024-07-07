@@ -1,25 +1,34 @@
 import { useSelector, useDispatch } from "react-redux";
 import { RootState, AppDispatch } from "@/store";
-import { fetchStudentById } from "@/store/student/studentSlice";
+import { fetchStudentByEmail, fetchStudentProgress } from "@/store/student/studentSlice";
 import { useCallback } from "react";
 
 export const useStudent = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { currentStudent, isLoading, error } = useSelector(
+  const { currentStudent, isLoading, error, progress } = useSelector(
     (state: RootState) => state.student
   );
 
-  const getStudentById = useCallback(
-    (id: string) => {
-      dispatch(fetchStudentById(id));
+  const getStudentByEmail = useCallback(
+    (email: string) => {
+      dispatch(fetchStudentByEmail(email));
+    },
+    [dispatch]
+  );
+
+  const getProgress = useCallback(
+    (email: string) => {
+      dispatch(fetchStudentProgress(email));
     },
     [dispatch]
   );
 
   return {
+    getProgress,
+    progress,
     currentStudent,
     isLoading,
     error,
-    fetchStudentById: getStudentById,
+    fetchStudentByEmail: getStudentByEmail,
   };
 };

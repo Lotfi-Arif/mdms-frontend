@@ -1,3 +1,5 @@
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import api from "@/utils/axiosConfig";
 import {
   Student,
   Submission,
@@ -6,8 +8,6 @@ import {
   User,
   Supervisor,
 } from "@lotfiarif-development/mdms-prisma-schema";
-import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
-import api from "@/utils/axiosConfig";
 
 interface FullUserWithStudent extends User {
   student: Student & {
@@ -15,6 +15,14 @@ interface FullUserWithStudent extends User {
     submissions: Submission[];
     viva?: Viva;
     supervisor?: User & { lecturer: { supervisor: Supervisor } };
+    progress1Date: string;
+    progress1Completed: boolean;
+    progress2Date: string;
+    progress2Completed: boolean;
+    finalReportDate: string;
+    finalReportCompleted: boolean;
+    presentationDate: string;
+    presentationCompleted: boolean;
   };
 }
 
@@ -46,11 +54,11 @@ export const fetchStudents = createAsyncThunk(
   }
 );
 
-export const fetchStudentById = createAsyncThunk(
+export const fetchStudentByEmail = createAsyncThunk(
   "student/fetchStudentById",
-  async (id: string, { rejectWithValue }) => {
+  async (email: string, { rejectWithValue }) => {
     try {
-      const response = await api.get(`/students/${id}`);
+      const response = await api.get(`/students/${email}`);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response.data);
@@ -60,9 +68,9 @@ export const fetchStudentById = createAsyncThunk(
 
 export const fetchStudentProgress = createAsyncThunk(
   "student/fetchStudentProgress",
-  async (id: string, { rejectWithValue }) => {
+  async (email: string, { rejectWithValue }) => {
     try {
-      const response = await api.get(`/students/${id}/progress`);
+      const response = await api.get(`/students/${email}/progress`);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(error.response.data);
@@ -136,15 +144,15 @@ const studentSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
-      .addCase(fetchStudentById.pending, (state) => {
+      .addCase(fetchStudentByEmail.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(fetchStudentById.rejected, (state, action) => {
+      .addCase(fetchStudentByEmail.rejected, (state, action) => {
         state.isLoading = false;
         state.error = action.payload as string;
       })
       .addCase(
-        fetchStudentById.fulfilled,
+        fetchStudentByEmail.fulfilled,
         (state, action: PayloadAction<FullUserWithStudent>) => {
           state.currentStudent = action.payload;
         }
@@ -164,19 +172,6 @@ const studentSlice = createSlice({
           state.currentStudent?.student.submissions.push(action.payload);
         }
       );
-    // TODO: Uncomment the following lines after understanding the structure of the state
-    // .addCase(
-    //   fetchVivaDetails.fulfilled,
-    //   (state, action: PayloadAction<Viva>) => {
-    //     state.currentStudent?.student.viva = action.payload;
-    //   }
-    // )
-    // .addCase(
-    //   fetchProjects.fulfilled,
-    //   (state, action: PayloadAction<Project[]>) => {
-    //     state.students = action.payload;
-    //   }
-    // );
   },
 });
 
