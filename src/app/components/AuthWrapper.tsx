@@ -11,7 +11,6 @@ export const AuthWrapper: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const {
-    currentUser,
     refreshToken,
     isLoading,
     error,
@@ -28,18 +27,12 @@ export const AuthWrapper: React.FC<{ children: React.ReactNode }> = ({
   }, [isLoggedIn, initializeAuth]);
 
   useEffect(() => {
-    if (isLoggedIn && !isLoading) {
-      if (!refreshToken && !publicRoutes.includes(pathname)) {
-        router.replace("/login");
-      } else if (currentUser && publicRoutes.includes(pathname)) {
-        if (currentUser.lecturer) {
-          router.replace("/lecturer/dashboard");
-        } else if (currentUser.student) {
-          router.replace("/student/progress");
-        }
-      }
+    if (!isLoggedIn && refreshToken) {
+      initializeAuth();
+    } else if (!refreshToken && !publicRoutes.includes(pathname)) {
+      router.replace("/login");
     }
-  }, [isLoggedIn, isLoading, currentUser, refreshToken, router, pathname]);
+  }, [isLoggedIn, refreshToken, initializeAuth, pathname, router]);
 
   if (!isLoggedIn || isLoading) {
     return <LoadingSpinner />;

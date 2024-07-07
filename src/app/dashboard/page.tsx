@@ -20,7 +20,7 @@ import { useStudent } from "@/hooks/useStudent";
 import { useLecturer } from "@/hooks/useLecturer";
 
 export default function Dashboard() {
-  const { currentUser } = useAuth();
+  const { currentUser, isLoading } = useAuth();
   const router = useRouter();
   const { currentStudent, fetchStudentById } = useStudent();
   const { currentLecturer, fetchLecturerById } = useLecturer();
@@ -37,8 +37,16 @@ export default function Dashboard() {
     }
   }, [currentUser, router, fetchStudentById, fetchLecturerById]);
 
-  if (!currentUser) {
+  if (isLoading) {
     return <CircularProgress />;
+  }
+
+  if (!currentUser) {
+    return (
+      <Typography color="error">
+        An error occurred: User not found. Please log in again.
+      </Typography>
+    );
   }
 
   const isStudent = currentUser.student;
@@ -70,7 +78,7 @@ export default function Dashboard() {
             )}
           </Paper>
         </Grid>
-        {isStudent && currentStudent && (
+        {isStudent && currentStudent && currentStudent.student && (
           <>
             <Grid item xs={12} md={6}>
               <Paper sx={{ p: 2 }}>

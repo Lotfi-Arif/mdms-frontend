@@ -1,39 +1,45 @@
 "use client";
-
-import React, { useState } from "react";
-import AuthForm from "../components/AuthForm";
+import React, { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { useAuth } from "@/hooks/useAuth";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { Box, CircularProgress, Paper, Typography } from "@mui/material";
+import { usePathname, useRouter } from "next/navigation";
+import { Box, Paper, Skeleton, Typography } from "@mui/material";
+
+const AuthForm = dynamic(() => import("../components/AuthForm"), {
+  ssr: false,
+});
 
 export default function LoginPage() {
-  const { currentUser, isLoading } = useAuth();
+  const { currentUser, isLoading, error } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const [isRedirecting, setIsRedirecting] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     if (currentUser && !isRedirecting) {
       setIsRedirecting(true);
-      if (currentUser.lecturer) {
+      if (currentUser.lecturer && pathname !== "/lecturer/dashboard") {
         router.push("/lecturer/dashboard");
-      } else if (currentUser.student) {
+      } else if (currentUser.student && pathname !== "/student/progress") {
         router.push("/student/progress");
+      } else {
+        setIsRedirecting(false);
       }
     }
-  }, [currentUser, router, isRedirecting]);
+  }, [currentUser, router, isRedirecting, pathname]);
 
-  if (isLoading || isRedirecting) {
+  if (!isMounted || isLoading || isRedirecting) {
     return (
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          minHeight: "100vh",
-        }}
-      >
-        <CircularProgress />
+      <Box sx={{ p: 2, maxWidth: 400, margin: "auto" }}>
+        <Skeleton variant="rectangular" height={60} sx={{ mb: 2 }} />
+        <Skeleton variant="rectangular" height={40} sx={{ mb: 1 }} />
+        <Skeleton variant="rectangular" height={40} sx={{ mb: 1 }} />
+        <Skeleton variant="rectangular" height={40} />
       </Box>
     );
   }
@@ -53,6 +59,11 @@ export default function LoginPage() {
         </Typography>
         <AuthForm isLogin={true} />
       </Paper>
+      {error && (
+        <Typography color="error" align="center" sx={{ mt: 2 }}>
+          {error}
+        </Typography>
+      )}
     </Box>
   );
 }

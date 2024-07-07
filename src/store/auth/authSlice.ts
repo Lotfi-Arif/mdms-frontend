@@ -17,11 +17,11 @@ interface AuthState {
 }
 
 const initialState: AuthState = {
-  currentUser: null,
+  currentUser: JSON.parse(getLocalStorageItem("userData") || "null") || null,
   refreshToken: getLocalStorageItem("refreshToken") || null,
   isLoading: false,
   error: null,
-  isLoggedIn: false,
+  isLoggedIn: !!getLocalStorageItem("refreshToken"),
 };
 
 export const login = createAsyncThunk<
@@ -31,13 +31,14 @@ export const login = createAsyncThunk<
   },
   LoginCredentials,
   { rejectValue: string; state: RootState; dispatch: AppDispatch }
->("auth/login", async (credentials, { rejectWithValue, dispatch }) => {
+>("auth/login", async (credentials, { rejectWithValue }) => {
   try {
     const response = await api.post<{
       refreshToken: string;
       user: FullUserWithoutPassword;
     }>("/auth/login", credentials);
     setLocalStorageItem("refreshToken", response.data.refreshToken);
+    setLocalStorageItem("currentUser", JSON.stringify(response.data.user));
 
     return {
       refreshToken: response.data.refreshToken,
@@ -59,9 +60,10 @@ export const logout = createAsyncThunk(
       if (auth.currentUser) {
         await api.post(`/auth/logout`, { userId: auth.currentUser.id });
       }
-      removeLocalStorageItem("token");
+      removeLocalStorageItem("refreshToken");
+      removeLocalStorageItem("currentUser");
     } catch (error: any) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data?.message || "Logout failed");
     }
   }
 );
@@ -95,6 +97,7 @@ export const fetchCurrentUser = createAsyncThunk<
       throw new Error("No refresh token available");
     }
     const response = await api.get<FullUserWithoutPassword>("/auth/me");
+    setLocalStorageItem("currentUser", JSON.stringify(response.data));
     return response.data;
   } catch (error: any) {
     return rejectWithValue(
